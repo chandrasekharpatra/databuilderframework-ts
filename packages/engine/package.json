@@ -1,5 +1,5 @@
 {
-	"name": "@databuilderframework-ts/engine",
+	"name": "@chandrasekharpatra/databuilderframework-ts",
 	"version": "0.0.0",
 	"description": "Core engine of the framework",
 	"main": "dist/index.js",
