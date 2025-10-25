@@ -19,6 +19,6 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
       - run: npm ci
       # Publish the engine package specifically
-      - run: npm publish --workspace=@databuilderframework-ts/engine
+      - run: npm publish --workspace=@chandrasekharpatra/databuilderframework-ts
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
