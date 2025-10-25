@@ -20,6 +20,10 @@ jobs:
           # Defaults to the user or organization that owns the workflow file
           scope: '@chandrasekharpatra'
       - run: npm ci
-      - run: npm publish
+      # Build the engine package
+      - run: npm run build --workspace=packages/engine
+      
+      # Publish the engine package specifically
+      - run: npm publish --workspace=packages/engine
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
