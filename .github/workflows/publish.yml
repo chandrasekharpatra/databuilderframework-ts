@@ -21,6 +21,6 @@ jobs:
           scope: '@chandrasekharpatra'
       - run: npm ci
       # Publish the engine package specifically
-      - run: npm publish --workspace=packages/engine
+      - run: npm publish --workspace=@databuilderframework-ts/engine
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
