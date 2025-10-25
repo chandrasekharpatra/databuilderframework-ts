@@ -1,0 +1,9 @@
+{
+    "extends": "@databuilderframework-ts/typescript-config/base.json",
+    "exclude": [
+        "node_modules",
+        "dist",
+        "test",
+        "**/*.test.ts"
+    ],
+}
