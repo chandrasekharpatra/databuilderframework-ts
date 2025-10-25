@@ -20,6 +20,7 @@ jobs:
           # Defaults to the user or organization that owns the workflow file
           scope: '@chandrasekharpatra'
       - run: npm ci
-      - run: npm publish
+      # Publish the engine package specifically
+      - run: npm publish --workspace=@databuilderframework-ts/engine
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
