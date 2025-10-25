@@ -20,6 +20,5 @@
 	"dependencies": {
 		"@databuilderframework-ts/eslint-config": "*",
 		"@databuilderframework-ts/typescript-config": "*"
-	},
-	"repository": "https://github.com/chandrasekharpatra/databuilderframework-ts"
+	}
 }
