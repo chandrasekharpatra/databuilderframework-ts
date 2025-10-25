@@ -1,0 +1,30 @@
+{
+	"name": "databuilderframework-ts",
+	"private": true,
+	"scripts": {
+		"build": "turbo run build",
+		"dev": "turbo run dev",
+		"lint": "turbo run lint",
+    "test": "turbo run test",
+		"format": "prettier --write \"**/*.{ts,tsx,md}\"",
+		"check-types": "turbo run check-types"
+	},
+	"devDependencies": {
+		"prettier": "^3.6.2",
+		"turbo": "^2.5.8",
+		"typescript": "5.9.2"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"packageManager": "npm@8.11.0",
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository":  "https://github.com/chandrasekharpatra/databuilderframework-ts",
+  "license": "MIT"
+}

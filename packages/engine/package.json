@@ -1,0 +1,25 @@
+{
+	"name": "@databuilderframework-ts/engine",
+	"version": "0.0.0",
+	"description": "Core engine of the framework",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"type": "module",
+	"scripts": {
+		"test": "vitest",
+		"build": "tsdown --format esm",
+		"lint": "eslint ."
+	},
+	"author": "Chandrasekhar Patra",
+	"license": "ISC",
+	"devDependencies": {
+		"tsdown": "^0.15.9",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.3"
+	},
+	"dependencies": {
+		"@databuilderframework-ts/eslint-config": "*",
+		"@databuilderframework-ts/typescript-config": "*"
+	},
+	"repository": "https://github.com/chandrasekharpatra/databuilderframework-ts"
+}
