@@ -7,7 +7,8 @@
 	"type": "module",
 	"scripts": {
 		"test": "vitest",
-		"build": "tsdown --format esm"
+		"build": "tsdown --format esm",
+		"lint": "eslint ."
 	},
 	"author": "Chandrasekhar Patra",
 	"license": "ISC",
@@ -17,6 +18,7 @@
 		"vitest": "^4.0.3"
 	},
 	"dependencies": {
+		"@databuilderframework-ts/eslint-config": "*",
 		"@databuilderframework-ts/typescript-config": "*"
 	}
 }
