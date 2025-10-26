@@ -30,9 +30,5 @@ jobs:
           publish: npm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Publish
-        if: steps.changesets.outputs.hasChangesets == 'false'
-        run: npm publish --workspace=@chandrasekharpatra/databuilderframework-ts --access public
-        env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
