@@ -13,12 +13,10 @@
 	"author": "Chandrasekhar Patra",
 	"license": "ISC",
 	"devDependencies": {
+		"@databuilderframework-ts/eslint-config": "*",
+		"@databuilderframework-ts/typescript-config": "*",
 		"tsdown": "^0.15.9",
 		"typescript": "^5.9.3",
 		"vitest": "^4.0.3"
-	},
-	"dependencies": {
-		"@databuilderframework-ts/eslint-config": "*",
-		"@databuilderframework-ts/typescript-config": "*"
 	}
 }
