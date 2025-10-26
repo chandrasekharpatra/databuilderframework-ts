@@ -1,5 +1,11 @@
 # @chandrasekharpatra/databuilderframework-ts
 
+## 1.2.0
+
+### Minor Changes
+
+- e9a9eeb: Removed dev dependencies from main
+
 ## 1.1.0
 
 ### Minor Changes
