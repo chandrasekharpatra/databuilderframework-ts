@@ -1,5 +1,5 @@
 ---
-'@chandrasekharpatra/databuilderframework-ts': major
+'@chandrasekharpatra/databuilderframework-ts': minor
 ---
 
 Pipeline fix
