@@ -1,7 +1,7 @@
-import { describe, test, expect, beforeEach } from 'vitest';
-import { DataFlowEngine, ExecutionMode } from '../src/core/DataFlowEngine.js';
-import { AbstractDataBuilder, SourceDataBuilder, TransformDataBuilder, CombineDataBuilder } from '../src/builders/AbstractDataBuilder.js';
-import { Data, DataBuilder, DataSet } from '../src/types/index.js';
+import { beforeEach, describe, expect, test } from 'vitest';
+import { CombineDataBuilder, SourceDataBuilder, TransformDataBuilder } from '../src/builders/AbstractDataBuilder';
+import { DataFlowEngine, ExecutionMode } from '../src/core/DataFlowEngine';
+import { Data, DataSet } from '../src/types';
 
 // Performance test data interfaces
 interface PerformanceData extends Data {

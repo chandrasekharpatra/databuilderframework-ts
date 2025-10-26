@@ -1,4 +1,4 @@
-import { Data, DataBuilder, DataBuilderMeta } from '../types/index.js';
+import { Data, DataBuilder, DataBuilderMeta } from '../types';
 
 /**
  * Error thrown when attempting to register a duplicate builder.

@@ -1,10 +1,10 @@
-import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { DataFlowEngine, DataFlowExecutionError, ExecutionMode } from '../src/core/DataFlowEngine.js';
-import { CircularDependencyError, MissingBuilderError } from '../src/core/ExecutionPlanner.js';
-import { BuilderExecutionError } from '../src/core/ExecutionStrategy.js';
-import { DataSetImpl } from '../src/core/DataSetImpl.js';
-import { AbstractDataBuilder, SourceDataBuilder, TransformDataBuilder, CombineDataBuilder } from '../src/builders/AbstractDataBuilder.js';
-import { Data, DataBuilder, DataSet, ExecutionContext } from '../src/types/index.js';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { AbstractDataBuilder, CombineDataBuilder, SourceDataBuilder, TransformDataBuilder } from '../src/builders/AbstractDataBuilder';
+import { DataFlowEngine, ExecutionMode } from '../src/core/DataFlowEngine';
+import { DataSetImpl } from '../src/core/DataSetImpl';
+import { CircularDependencyError, MissingBuilderError } from '../src/core/ExecutionPlanner';
+import { BuilderExecutionError } from '../src/core/ExecutionStrategy';
+import { Data, DataSet, ExecutionContext } from '../src/types';
 
 // Test data interfaces
 interface User extends Data {

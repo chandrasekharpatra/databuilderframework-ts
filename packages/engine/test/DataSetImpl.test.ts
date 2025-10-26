@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach } from 'vitest';
-import { DataSetImpl } from '../src/core/DataSetImpl.js';
-import { Data } from '../src/types/index.js';
+import { beforeEach, describe, expect, test } from 'vitest';
+import { DataSetImpl } from '../src/core/DataSetImpl';
+import { Data } from '../src/types';
 
 // Test data interfaces
 interface User extends Data {

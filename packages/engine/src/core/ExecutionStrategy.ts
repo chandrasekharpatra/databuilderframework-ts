@@ -1,8 +1,8 @@
-import { DataSet, ExecutionContext } from '../types/index.js';
-import { BuilderRegistry } from './BuilderRegistry.js';
-import { DataSetImpl } from './DataSetImpl.js';
-import { ExecutionPlan } from './ExecutionPlanner.js';
-import { ExecutionStatisticsCollector, ExecutionStats } from './ExecutionStatisticsCollector.js';
+import { DataSet, ExecutionContext } from '../types';
+import { BuilderRegistry } from './BuilderRegistry';
+import { DataSetImpl } from './DataSetImpl';
+import { ExecutionPlan } from './ExecutionPlanner';
+import { ExecutionStatisticsCollector, ExecutionStats } from './ExecutionStatisticsCollector';
 
 /**
  * Error thrown when a builder fails to execute.

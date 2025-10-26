@@ -1,13 +1,13 @@
-import { describe, test, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 import {
 	AbstractDataBuilder,
-	SourceDataBuilder,
-	TransformDataBuilder,
 	CombineDataBuilder,
 	RequiredDataNotFoundError,
-} from '../src/builders/AbstractDataBuilder.js';
-import { DataSetImpl } from '../src/core/DataSetImpl.js';
-import { Data, DataSet } from '../src/types/index.js';
+	SourceDataBuilder,
+	TransformDataBuilder,
+} from '../src/builders/AbstractDataBuilder';
+import { DataSetImpl } from '../src/core/DataSetImpl';
+import { Data, DataSet } from '../src/types';
 
 // Test data interfaces
 interface User extends Data {

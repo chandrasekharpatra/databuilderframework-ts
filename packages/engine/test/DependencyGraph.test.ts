@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach } from 'vitest';
-import { DependencyGraph, DependencyNode } from '../src/core/DependencyGraph.js';
-import { DataBuilderMeta } from '../src/types/index.js';
+import { beforeEach, describe, expect, test } from 'vitest';
+import { DependencyGraph, DependencyNode } from '../src/core/DependencyGraph';
+import { DataBuilderMeta } from '../src/types';
 
 describe('DependencyGraph', () => {
 	let graph: DependencyGraph;

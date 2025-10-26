@@ -1,4 +1,4 @@
-import { Data, DataSet } from '../types/index.js';
+import { Data, DataSet } from '../types';
 
 /**
  * Concrete implementation of the DataSet interface.

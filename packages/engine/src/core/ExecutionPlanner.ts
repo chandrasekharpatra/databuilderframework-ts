@@ -1,5 +1,5 @@
-import { BuilderRegistry } from './BuilderRegistry.js';
-import { DependencyGraph, DependencyNode } from './DependencyGraph.js';
+import { BuilderRegistry } from './BuilderRegistry';
+import { DependencyGraph, DependencyNode } from './DependencyGraph';
 
 /**
  * Error thrown when execution planning fails.
