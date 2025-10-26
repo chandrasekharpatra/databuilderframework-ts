@@ -1,9 +1,9 @@
-import { Data, DataBuilder, DataSet, ExecutionContext } from '../types/index.js';
-import { BuilderRegistry, DuplicateBuilderError } from './BuilderRegistry.js';
-import { DataSetImpl } from './DataSetImpl.js';
-import { CircularDependencyError, ExecutionPlanner, MissingBuilderError } from './ExecutionPlanner.js';
-import { ExecutionStatisticsCollector } from './ExecutionStatisticsCollector.js';
-import { BuilderExecutionError, ExecutionOptions, ExecutionResult, ExecutionStrategyFactory } from './ExecutionStrategy.js';
+import { Data, DataBuilder, DataSet, ExecutionContext } from '../types';
+import { BuilderRegistry, DuplicateBuilderError } from './BuilderRegistry';
+import { DataSetImpl } from './DataSetImpl';
+import { CircularDependencyError, ExecutionPlanner, MissingBuilderError } from './ExecutionPlanner';
+import { ExecutionStatisticsCollector } from './ExecutionStatisticsCollector';
+import { BuilderExecutionError, ExecutionOptions, ExecutionResult, ExecutionStrategyFactory } from './ExecutionStrategy';
 
 /**
  * Error thrown when there are issues with the execution flow.

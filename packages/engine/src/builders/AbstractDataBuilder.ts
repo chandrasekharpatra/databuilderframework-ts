@@ -1,4 +1,4 @@
-import { Data, DataBuilder, DataSet } from '../types/index.js';
+import { Data, DataBuilder, DataSet } from '../types/index';
 
 /**
  * Error thrown when required data is not found in the dataset.

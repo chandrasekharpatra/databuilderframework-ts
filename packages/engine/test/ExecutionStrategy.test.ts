@@ -1,16 +1,15 @@
-import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { BuilderRegistry } from '../src/core/BuilderRegistry';
+import { DataSetImpl } from '../src/core/DataSetImpl';
+import { ExecutionPlanner } from '../src/core/ExecutionPlanner';
+import { ExecutionStatisticsCollector } from '../src/core/ExecutionStatisticsCollector';
 import {
-	ExecutionStrategy,
-	SequentialExecutionStrategy,
-	ParallelExecutionStrategy,
-	ExecutionStrategyFactory,
 	BuilderExecutionError,
-} from '../src/core/ExecutionStrategy.js';
-import { BuilderRegistry } from '../src/core/BuilderRegistry.js';
-import { ExecutionStatisticsCollector } from '../src/core/ExecutionStatisticsCollector.js';
-import { ExecutionPlanner } from '../src/core/ExecutionPlanner.js';
-import { DataSetImpl } from '../src/core/DataSetImpl.js';
-import { DataBuilder, Data, DataSet, ExecutionContext } from '../src/types/index.js';
+	ExecutionStrategyFactory,
+	ParallelExecutionStrategy,
+	SequentialExecutionStrategy
+} from '../src/core/ExecutionStrategy';
+import { Data, DataBuilder, DataSet, ExecutionContext } from '../src/types';
 
 // Test data interfaces
 interface User extends Data {

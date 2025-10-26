@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach } from 'vitest';
-import { BuilderRegistry } from '../src/core/BuilderRegistry.js';
-import { DataBuilder, Data, DataSet } from '../src/types/index.js';
+import { beforeEach, describe, expect, test } from 'vitest';
+import { BuilderRegistry } from '../src/core/BuilderRegistry';
+import { Data, DataBuilder, DataSet } from '../src/types/index';
 
 // Test data interfaces
 interface User extends Data {

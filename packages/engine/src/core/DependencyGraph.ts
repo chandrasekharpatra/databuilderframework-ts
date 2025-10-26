@@ -1,4 +1,4 @@
-import { DataBuilderMeta } from '../types/index.js';
+import { DataBuilderMeta } from '../types';
 
 /**
  * Represents a node in the dependency graph.

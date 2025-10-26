@@ -1,5 +1,5 @@
-import { describe, test, expect, beforeEach, vi, afterEach } from 'vitest';
-import { ExecutionStatisticsCollector } from '../src/core/ExecutionStatisticsCollector.js';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { ExecutionStatisticsCollector } from '../src/core/ExecutionStatisticsCollector';
 
 describe('ExecutionStatisticsCollector', () => {
 	let collector: ExecutionStatisticsCollector;
