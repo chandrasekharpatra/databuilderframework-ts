@@ -52,6 +52,22 @@ export class DataSetImpl implements DataSet {
 	}
 
 	/**
+	 * Iterate over all data objects in the dataset.
+	 * @returns Iterator of all data objects
+	 */
+	values(): IterableIterator<Data> {
+		return this.data.values();
+	}
+
+	/**
+	 * Iterate over all data type / data object pairs in the dataset.
+	 * @returns Iterator of [dataType, data] pairs
+	 */
+	entries(): IterableIterator<[string, Data]> {
+		return this.data.entries();
+	}
+
+	/**
 	 * Add a data object to the dataset.
 	 * If data of the same type already exists, it will be replaced.
 	 * @param data The data object to add
@@ -106,14 +122,8 @@ export class DataSetImpl implements DataSet {
 	 * @param other The dataset to merge into this one
 	 */
 	merge(other: DataSet): void {
-		if (other instanceof DataSetImpl) {
-			for (const [type, data] of other.data) {
-				this.data.set(type, data);
-			}
-		} else {
-			// If it's not a DataSetImpl, we can't access the internal data directly
-			// This is a limitation, but maintains interface compatibility
-			throw new Error('Can only merge with another DataSetImpl instance');
+		for (const [type, data] of other.entries()) {
+			this.data.set(type, data);
 		}
 	}
 

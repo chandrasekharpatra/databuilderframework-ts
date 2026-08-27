@@ -5,9 +5,10 @@ import { ExecutionPlanner } from '../src/core/ExecutionPlanner';
 import { ExecutionStatisticsCollector } from '../src/core/ExecutionStatisticsCollector';
 import {
 	BuilderExecutionError,
+	ExecutionHooks,
 	ExecutionStrategyFactory,
 	ParallelExecutionStrategy,
-	SequentialExecutionStrategy
+	SequentialExecutionStrategy,
 } from '../src/core/ExecutionStrategy';
 import { Data, DataBuilder, DataSet, ExecutionContext } from '../src/types';
 
@@ -589,6 +590,8 @@ describe('ExecutionStrategy', () => {
 				accessor: () => undefined,
 				size: () => 0,
 				isEmpty: () => true,
+				values: function* () {},
+				entries: function* () {},
 			};
 
 			const customContext: ExecutionContext = {
@@ -708,6 +711,171 @@ describe('ExecutionStrategy', () => {
 
 			// Parallel should be faster (4 * 25ms = 100ms vs ~25ms parallel)
 			expect(parallelTime).toBeLessThan(sequentialTime);
+		});
+	});
+
+	describe('Execution hooks', () => {
+		let registry: BuilderRegistry;
+		let planner: ExecutionPlanner;
+		let context: ExecutionContext;
+		let plan: ReturnType<ExecutionPlanner['createExecutionPlan']>;
+
+		beforeEach(() => {
+			registry = new BuilderRegistry();
+			registry.register(new UserBuilder());
+			registry.register(new ProfileBuilder());
+			registry.register(new UserStatsBuilder());
+			registry.register(new ReportBuilder());
+
+			planner = new ExecutionPlanner(registry);
+			const targetTypes = ['report'];
+
+			context = {
+				dataFlow: {
+					name: 'report-flow',
+					targetData: targetTypes,
+				},
+				initialData: new DataSetImpl(),
+				builders: registry.getAll(),
+			};
+
+			plan = planner.createExecutionPlan(targetTypes);
+		});
+
+		test('sequential strategy calls builder lifecycle hooks', async () => {
+			const onBuilderStart = vi.fn();
+			const onBuilderComplete = vi.fn();
+			const onBuilderSkipped = vi.fn();
+			const onExecutionStart = vi.fn();
+			const onExecutionComplete = vi.fn();
+
+			const hooks: ExecutionHooks = {
+				onBuilderStart,
+				onBuilderComplete,
+				onBuilderSkipped,
+				onExecutionStart,
+				onExecutionComplete,
+			};
+
+			const strategy = new SequentialExecutionStrategy(registry, new ExecutionStatisticsCollector());
+			await strategy.execute(context, plan, { hooks });
+
+			expect(onExecutionStart).toHaveBeenCalledTimes(1);
+			expect(onExecutionStart).toHaveBeenCalledWith(plan);
+
+			expect(onBuilderStart).toHaveBeenCalledWith('user');
+			expect(onBuilderStart).toHaveBeenCalledWith('profile');
+			expect(onBuilderStart).toHaveBeenCalledWith('userStats');
+			expect(onBuilderStart).toHaveBeenCalledWith('report');
+
+			expect(onBuilderComplete).toHaveBeenCalledWith('user', expect.any(Number));
+			expect(onBuilderComplete).toHaveBeenCalledWith('profile', expect.any(Number));
+			expect(onBuilderComplete).toHaveBeenCalledWith('userStats', expect.any(Number));
+			expect(onBuilderComplete).toHaveBeenCalledWith('report', expect.any(Number));
+
+			expect(onBuilderSkipped).not.toHaveBeenCalled();
+			expect(onExecutionComplete).toHaveBeenCalledTimes(1);
+		});
+
+		test('parallel strategy calls level hooks', async () => {
+			const onLevelStart = vi.fn();
+			const onExecutionStart = vi.fn();
+			const onExecutionComplete = vi.fn();
+
+			const hooks: ExecutionHooks = {
+				onLevelStart,
+				onExecutionStart,
+				onExecutionComplete,
+			};
+
+			const strategy = new ParallelExecutionStrategy(registry, new ExecutionStatisticsCollector());
+			await strategy.execute(context, plan, { hooks });
+
+			expect(onExecutionStart).toHaveBeenCalledTimes(1);
+			expect(onExecutionComplete).toHaveBeenCalledTimes(1);
+
+			expect(onLevelStart).toHaveBeenCalledTimes(plan.parallelExecutionLevels.length);
+			for (const level of plan.parallelExecutionLevels) {
+				expect(onLevelStart).toHaveBeenCalledWith(level);
+			}
+		});
+
+		test('onBuilderSkipped is called when data already exists', async () => {
+			const initialData = new DataSetImpl();
+			initialData.add({ type: 'user', id: 1, name: 'John Doe', email: 'john@example.com' } as User);
+
+			const onBuilderSkipped = vi.fn();
+			const hooks: ExecutionHooks = { onBuilderSkipped };
+
+			const targetTypes = ['report'];
+			const newContext: ExecutionContext = {
+				...context,
+				initialData,
+			};
+			const newPlan = planner.createExecutionPlan(targetTypes);
+
+			const strategy = new SequentialExecutionStrategy(registry, new ExecutionStatisticsCollector());
+			await strategy.execute(newContext, newPlan, { hooks });
+
+			expect(onBuilderSkipped).toHaveBeenCalledWith('user');
+		});
+
+		test('onBuilderError is called when builder fails and execution throws', async () => {
+			const failingRegistry = new BuilderRegistry();
+			failingRegistry.register({
+				provides: 'user',
+				consumes: [],
+				async build(): Promise<User> {
+					throw new Error('user builder failed');
+				},
+			});
+
+			const onBuilderError = vi.fn();
+			const hooks: ExecutionHooks = { onBuilderError };
+
+			const targetTypes = ['user'];
+			const newPlanner = new ExecutionPlanner(failingRegistry);
+			const newPlan = newPlanner.createExecutionPlan(targetTypes);
+			const newContext: ExecutionContext = {
+				dataFlow: { name: 'failing-flow', targetData: targetTypes },
+				initialData: new DataSetImpl(),
+				builders: failingRegistry.getAll(),
+			};
+
+			const strategy = new SequentialExecutionStrategy(failingRegistry, new ExecutionStatisticsCollector());
+			await expect(strategy.execute(newContext, newPlan, { hooks })).rejects.toBeInstanceOf(BuilderExecutionError);
+
+			expect(onBuilderError).toHaveBeenCalledTimes(1);
+			expect(onBuilderError).toHaveBeenCalledWith('user', expect.any(BuilderExecutionError));
+		});
+
+		test('onBuilderError is called when continueOnError is true', async () => {
+			const failingRegistry = new BuilderRegistry();
+			failingRegistry.register({
+				provides: 'user',
+				consumes: [],
+				async build(): Promise<User> {
+					throw new Error('user builder failed');
+				},
+			});
+
+			const onBuilderError = vi.fn();
+			const hooks: ExecutionHooks = { onBuilderError };
+
+			const targetTypes = ['user'];
+			const newPlanner = new ExecutionPlanner(failingRegistry);
+			const newPlan = newPlanner.createExecutionPlan(targetTypes);
+			const newContext: ExecutionContext = {
+				dataFlow: { name: 'failing-flow', targetData: targetTypes },
+				initialData: new DataSetImpl(),
+				builders: failingRegistry.getAll(),
+			};
+
+			const strategy = new SequentialExecutionStrategy(failingRegistry, new ExecutionStatisticsCollector());
+			await strategy.execute(newContext, newPlan, { hooks, continueOnError: true });
+
+			expect(onBuilderError).toHaveBeenCalledTimes(1);
+			expect(onBuilderError).toHaveBeenCalledWith('user', expect.any(BuilderExecutionError));
 		});
 	});
 });

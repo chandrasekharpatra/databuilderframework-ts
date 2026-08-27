@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { DataSetImpl } from '../src/core/DataSetImpl';
-import { Data } from '../src/types';
+import { Data, DataSet } from '../src/types';
 
 // Test data interfaces
 interface User extends Data {
@@ -180,6 +180,81 @@ describe('DataSetImpl', () => {
 
 			expect(dataSet.size()).toBe(1);
 			expect(dataSet.accessor<User>('user')).toEqual(user);
+		});
+
+		test('should merge any DataSet implementation', () => {
+			const user: User = { type: 'user', id: 1, name: 'John Doe', email: 'john@example.com' };
+			const product: Product = { type: 'product', id: 101, title: 'Laptop', price: 999.99 };
+
+			dataSet.add(user);
+
+			// Minimal DataSet implementation that is not a DataSetImpl
+			class MinimalDataSet implements DataSet {
+				private readonly items = new Map<string, Data>([['product', product]]);
+
+				accessor<T extends Data>(dataType: string): T | undefined {
+					return this.items.get(dataType) as T | undefined;
+				}
+
+				contains(dataType: string): boolean {
+					return this.items.has(dataType);
+				}
+
+				size(): number {
+					return this.items.size;
+				}
+
+				isEmpty(): boolean {
+					return this.items.size === 0;
+				}
+
+				*values(): IterableIterator<Data> {
+					yield* this.items.values();
+				}
+
+				*entries(): IterableIterator<[string, Data]> {
+					yield* this.items.entries();
+				}
+			}
+
+			dataSet.merge(new MinimalDataSet());
+
+			expect(dataSet.size()).toBe(2);
+			expect(dataSet.accessor<User>('user')).toEqual(user);
+			expect(dataSet.accessor<Product>('product')).toEqual(product);
+		});
+	});
+
+	describe('Iteration', () => {
+		test('should iterate over all values', () => {
+			const user: User = { type: 'user', id: 1, name: 'John Doe', email: 'john@example.com' };
+			const product: Product = { type: 'product', id: 101, title: 'Laptop', price: 999.99 };
+
+			dataSet.add(user);
+			dataSet.add(product);
+
+			const values = Array.from(dataSet.values());
+			expect(values).toHaveLength(2);
+			expect(values).toContainEqual(user);
+			expect(values).toContainEqual(product);
+		});
+
+		test('should iterate over all entries', () => {
+			const user: User = { type: 'user', id: 1, name: 'John Doe', email: 'john@example.com' };
+			const product: Product = { type: 'product', id: 101, title: 'Laptop', price: 999.99 };
+
+			dataSet.add(user);
+			dataSet.add(product);
+
+			const entries = Array.from(dataSet.entries());
+			expect(entries).toHaveLength(2);
+			expect(entries).toContainEqual(['user', user]);
+			expect(entries).toContainEqual(['product', product]);
+		});
+
+		test('should iterate empty dataset', () => {
+			expect(Array.from(dataSet.values())).toEqual([]);
+			expect(Array.from(dataSet.entries())).toEqual([]);
 		});
 	});
 

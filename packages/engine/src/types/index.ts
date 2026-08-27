@@ -36,6 +36,18 @@ export interface DataSet {
 	 * @returns true if no data objects exist, false otherwise
 	 */
 	isEmpty(): boolean;
+
+	/**
+	 * Iterate over all data objects in the dataset.
+	 * @returns Iterator of all data objects
+	 */
+	values(): IterableIterator<Data>;
+
+	/**
+	 * Iterate over all data type / data object pairs in the dataset.
+	 * @returns Iterator of [dataType, data] pairs
+	 */
+	entries(): IterableIterator<[string, Data]>;
 }
 
 /**
