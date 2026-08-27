@@ -1,5 +1,11 @@
 # @chandrasekharpatra/databuilderframework-ts
 
+## 1.3.0
+
+### Minor Changes
+
+- a831920: api improvements and test coverage improvements
+
 ## 1.2.0
 
 ### Minor Changes
