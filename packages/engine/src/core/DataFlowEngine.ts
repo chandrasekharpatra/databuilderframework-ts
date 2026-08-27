@@ -1,5 +1,6 @@
 import { Data, DataBuilder, DataSet, ExecutionContext } from '../types';
-import { BuilderRegistry, DuplicateBuilderError } from './BuilderRegistry';
+import { BuilderRegistry } from './BuilderRegistry';
+import { createCheckpoint, DataSetCheckpoint, restoreFromCheckpoint } from './Checkpoint';
 import { DataSetImpl } from './DataSetImpl';
 import { CircularDependencyError, ExecutionPlanner, MissingBuilderError } from './ExecutionPlanner';
 import { ExecutionStatisticsCollector } from './ExecutionStatisticsCollector';
@@ -50,6 +51,7 @@ export class DataFlowEngine {
 	private readonly builderRegistry: BuilderRegistry;
 	private readonly executionPlanner: ExecutionPlanner;
 	private readonly statisticsCollector: ExecutionStatisticsCollector;
+	private readonly externalInputs: Set<string> = new Set();
 
 	constructor() {
 		this.builderRegistry = new BuilderRegistry();
@@ -66,14 +68,7 @@ export class DataFlowEngine {
 	 * @throws DuplicateBuilderError if a builder for the same data type is already registered and allowOverwrite is false
 	 */
 	registerBuilder<T extends Data>(builder: DataBuilder<T>, allowOverwrite: boolean = false): void {
-		try {
-			this.builderRegistry.register(builder, allowOverwrite);
-		} catch (error) {
-			if (error instanceof DuplicateBuilderError) {
-				throw new Error(error.message); // Maintain backward compatibility
-			}
-			throw error;
-		}
+		this.builderRegistry.register(builder, allowOverwrite);
 	}
 
 	/**
@@ -334,6 +329,113 @@ export class DataFlowEngine {
 		return this.executeSimpleWithOptions(targetData, initialData, { mode: ExecutionMode.PARALLEL });
 	}
 
+	// ===== Checkpoint / Resume Methods =====
+
+	/**
+	 * Execute the workflow until a specific data type is produced.
+	 * Useful for pausing at a phase boundary in long-running workflows.
+	 * @param targetData The data type to build up to
+	 * @param initialData Optional initial data to start with
+	 * @param options Optional execution options
+	 * @returns Promise that resolves to the execution result
+	 */
+	async executeUpTo(targetData: string, initialData?: DataSet, options: DataFlowExecutionOptions = {}): Promise<ExecutionResult> {
+		return this.executeSimpleWithOptions([targetData], initialData, options);
+	}
+
+	/**
+	 * Resume execution from a checkpoint.
+	 * @param targetData The data types to build
+	 * @param checkpoint A previously saved checkpoint, or an existing DataSet
+	 * @param options Optional execution options
+	 * @returns Promise that resolves to the execution result
+	 */
+	async resume(
+		targetData: string[],
+		checkpoint: DataSetCheckpoint | DataSet,
+		options: DataFlowExecutionOptions = {},
+	): Promise<ExecutionResult> {
+		const initialData =
+			checkpoint instanceof DataSetImpl || this.isDataSet(checkpoint) ? (checkpoint as DataSet) : restoreFromCheckpoint(checkpoint);
+
+		return this.executeSimpleWithOptions(targetData, initialData, options);
+	}
+
+	/**
+	 * Create a checkpoint from the result of a previous execution.
+	 * @param result The execution result to checkpoint
+	 * @returns A serializable checkpoint
+	 */
+	createCheckpoint(result: ExecutionResult): DataSetCheckpoint {
+		return createCheckpoint(result.dataSet);
+	}
+
+	/**
+	 * Type guard to check if an unknown value is a DataSet.
+	 * @param value The value to check
+	 * @returns true if the value implements the DataSet interface
+	 * @private
+	 */
+	private isDataSet(value: unknown): value is DataSet {
+		const ds = value as Partial<DataSet> | null;
+		return (
+			ds !== null &&
+			typeof ds === 'object' &&
+			typeof ds.accessor === 'function' &&
+			typeof ds.contains === 'function' &&
+			typeof ds.size === 'function' &&
+			typeof ds.isEmpty === 'function' &&
+			typeof ds.values === 'function' &&
+			typeof ds.entries === 'function'
+		);
+	}
+
+	// ===== External Input Declaration =====
+
+	/**
+	 * Declare a data type as an external input.
+	 * External inputs are expected to be supplied via initialData at execution time,
+	 * so the engine will not warn about missing builders for them during registry validation.
+	 * @param dataType The data type to declare as external
+	 */
+	declareExternalInput(dataType: string): void {
+		this.externalInputs.add(dataType);
+	}
+
+	/**
+	 * Declare multiple data types as external inputs.
+	 * @param dataTypes The data types to declare as external
+	 */
+	declareExternalInputs(dataTypes: string[]): void {
+		for (const dataType of dataTypes) {
+			this.externalInputs.add(dataType);
+		}
+	}
+
+	/**
+	 * Remove an external input declaration.
+	 * @param dataType The data type to remove
+	 * @returns true if the declaration was removed, false if it didn't exist
+	 */
+	undeclareExternalInput(dataType: string): boolean {
+		return this.externalInputs.delete(dataType);
+	}
+
+	/**
+	 * Get all declared external input data types.
+	 * @returns Array of declared external input data types
+	 */
+	getDeclaredExternalInputs(): string[] {
+		return Array.from(this.externalInputs);
+	}
+
+	/**
+	 * Clear all declared external inputs.
+	 */
+	clearDeclaredExternalInputs(): void {
+		this.externalInputs.clear();
+	}
+
 	// ===== Utility Methods =====
 
 	/**
@@ -368,7 +470,7 @@ export class DataFlowEngine {
 		const consumedTypes = this.builderRegistry.getConsumedTypes();
 
 		// Check for unresolvable dependencies
-		const unsatisfiedDependencies = consumedTypes.filter((type) => !providedTypes.includes(type));
+		const unsatisfiedDependencies = consumedTypes.filter((type) => !providedTypes.includes(type) && !this.externalInputs.has(type));
 		if (unsatisfiedDependencies.length > 0) {
 			issues.push(`Unsatisfied dependencies: ${unsatisfiedDependencies.join(', ')}`);
 		}

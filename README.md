@@ -5,6 +5,7 @@ A powerful TypeScript implementation of the DataBuilderFramework - a dependency 
 ## 🚀 Overview
 
 The DataBuilderFramework enables you to build robust, maintainable data processing workflows by:
+
 - **Automatic Dependency Resolution**: Define what data each builder needs and the framework figures out the execution order
 - **Type Safety**: Full TypeScript support with generics for compile-time safety
 - **Parallel Execution**: Automatically parallelizes independent operations for optimal performance
@@ -16,39 +17,51 @@ The DataBuilderFramework enables you to build robust, maintainable data processi
 This monorepo contains:
 
 ### Core Packages
+
 - **`packages/engine`**: The main DataBuilderFramework engine with all core functionality
 - **`packages/eslint-config`**: Shared ESLint configurations for consistent code quality
 - **`packages/typescript-config`**: Shared TypeScript configurations across the monorepo
 
 ### Applications
+
 - **`apps/docs`**: Documentation website built with [Next.js](https://nextjs.org/)
 - **`apps/web`**: Demo application showcasing framework usage
 
 ## 🔧 Key Features
 
 ### 🎯 Smart Dependency Management
+
 ```typescript
 // Define builders with dependencies - framework handles execution order
-class UserBuilder extends SourceDataBuilder<UserData> { /* ... */ }
-class EmailBuilder extends TransformDataBuilder<UserData, EmailData> { /* ... */ }
-class NotificationBuilder extends CombineDataBuilder<NotificationData> { /* ... */ }
+class UserBuilder extends SourceDataBuilder<UserData> {
+	/* ... */
+}
+class EmailBuilder extends TransformDataBuilder<UserData, EmailData> {
+	/* ... */
+}
+class NotificationBuilder extends CombineDataBuilder<NotificationData> {
+	/* ... */
+}
 
 // Framework automatically executes in correct order: User → Email → Notification
 ```
 
 ### ⚡ Performance Optimized
+
 - **Parallel Execution**: Independent builders run concurrently
 - **Efficient Planning**: Smart execution planning with cycle detection
 - **Resource Management**: Configurable concurrency limits
 - **Performance Monitoring**: Built-in execution statistics and timing
 
 ### 🛡️ Robust Error Handling
+
 - **Circular Dependency Detection**: Prevents infinite loops
 - **Missing Builder Validation**: Clear error messages for incomplete configurations
 - **Execution Error Recovery**: Detailed error context and recovery strategies
 - **Type Safety**: Compile-time validation of data contracts
 
 ### 🧪 Comprehensive Testing
+
 - **100% Test Coverage**: Unit tests, integration tests, and performance benchmarks
 - **11 Test Suites**: Complete coverage of all framework components
 - **Performance Benchmarks**: Scalability and efficiency validation
@@ -73,14 +86,18 @@ import { createEngine, SourceDataBuilder, TransformDataBuilder } from '@databuil
 
 // Define your data builders
 class ConfigBuilder extends SourceDataBuilder<ConfigData> {
-  readonly provides = 'config';
-  async build() { return { type: 'config', apiUrl: 'https://api.example.com' }; }
+	readonly provides = 'config';
+	async build() {
+		return { type: 'config', apiUrl: 'https://api.example.com' };
+	}
 }
 
 class DataProcessor extends TransformDataBuilder<ConfigData, ProcessedData> {
-  readonly provides = 'processed';
-  readonly inputType = 'config';
-  async transform(config) { return { type: 'processed', result: 'success' }; }
+	readonly provides = 'processed';
+	readonly inputType = 'config';
+	async transform(config) {
+		return { type: 'processed', result: 'success' };
+	}
 }
 
 // Execute with automatic dependency resolution
@@ -156,7 +173,7 @@ npm test Performance.test.ts
 # Example output:
 # ✓ Basic performance characteristics
 # ✓ Scalability with 10 builders (45ms)
-# ✓ Scalability with 50 builders (89ms) 
+# ✓ Scalability with 50 builders (89ms)
 # ✓ Complex dependency performance
 # ✓ Parallel execution efficiency: 78% efficiency gain
 ```
@@ -164,33 +181,54 @@ npm test Performance.test.ts
 ## 🎯 Use Cases
 
 ### Data Processing Pipelines
+
 ```typescript
 // ETL pipeline with automatic dependency resolution
-class DataExtractor extends SourceDataBuilder<RawData> { /* ... */ }
-class DataTransformer extends TransformDataBuilder<RawData, CleanData> { /* ... */ }
-class DataLoader extends TransformDataBuilder<CleanData, LoadResult> { /* ... */ }
+class DataExtractor extends SourceDataBuilder<RawData> {
+	/* ... */
+}
+class DataTransformer extends TransformDataBuilder<RawData, CleanData> {
+	/* ... */
+}
+class DataLoader extends TransformDataBuilder<CleanData, LoadResult> {
+	/* ... */
+}
 
 // Framework handles the ETL flow automatically
 const result = await engine.executeSimple(['loadResult']);
 ```
 
 ### API Data Aggregation
+
 ```typescript
 // Combine data from multiple APIs
-class UserAPIBuilder extends SourceDataBuilder<UserData> { /* ... */ }
-class OrderAPIBuilder extends SourceDataBuilder<OrderData> { /* ... */ }
-class DashboardBuilder extends CombineDataBuilder<DashboardData> { /* ... */ }
+class UserAPIBuilder extends SourceDataBuilder<UserData> {
+	/* ... */
+}
+class OrderAPIBuilder extends SourceDataBuilder<OrderData> {
+	/* ... */
+}
+class DashboardBuilder extends CombineDataBuilder<DashboardData> {
+	/* ... */
+}
 
 // Parallel API calls with automatic result combination
 const dashboard = await engine.executeSimple(['dashboard']);
 ```
 
 ### Machine Learning Workflows
+
 ```typescript
 // ML pipeline with feature engineering
-class DataLoader extends SourceDataBuilder<RawDataset> { /* ... */ }
-class FeatureEngineer extends TransformDataBuilder<RawDataset, Features> { /* ... */ }
-class ModelTrainer extends TransformDataBuilder<Features, TrainedModel> { /* ... */ }
+class DataLoader extends SourceDataBuilder<RawDataset> {
+	/* ... */
+}
+class FeatureEngineer extends TransformDataBuilder<RawDataset, Features> {
+	/* ... */
+}
+class ModelTrainer extends TransformDataBuilder<Features, TrainedModel> {
+	/* ... */
+}
 
 // Automatically orchestrated ML pipeline
 const model = await engine.executeSimple(['trainedModel']);
@@ -202,7 +240,7 @@ const model = await engine.executeSimple(['trainedModel']);
 
 - **DataFlowEngine**: Main orchestration engine
 - **BuilderRegistry**: Manages builder registration and lookup
-- **DependencyGraph**: Resolves dependencies and detects cycles  
+- **DependencyGraph**: Resolves dependencies and detects cycles
 - **ExecutionPlanner**: Creates optimal execution plans
 - **ExecutionStrategy**: Sequential and parallel execution strategies
 - **DataSet**: Type-safe data storage and retrieval
@@ -219,19 +257,19 @@ const model = await engine.executeSimple(['trainedModel']);
 
 The framework includes comprehensive testing:
 
-| Component | Test Type | Coverage |
-|-----------|-----------|----------|
-| DataSetImpl | Unit Tests | ✅ Complete |
-| BuilderRegistry | Unit Tests | ✅ Complete |
-| DependencyGraph | Unit Tests | ✅ Complete |
-| ExecutionPlanner | Unit Tests | ✅ Complete |
-| ExecutionStrategy | Unit Tests | ✅ Complete |
-| AbstractDataBuilder | Unit Tests | ✅ Complete |
-| ExecutionStatisticsCollector | Unit Tests | ✅ Complete |
-| DataFlowEngine | Integration Tests | ✅ Complete |
-| Error Handling | Edge Case Tests | ✅ Complete |
-| Performance | Benchmark Tests | ✅ Complete |
-| Overall Coverage | All Components | ✅ 100% |
+| Component                    | Test Type         | Coverage    |
+| ---------------------------- | ----------------- | ----------- |
+| DataSetImpl                  | Unit Tests        | ✅ Complete |
+| BuilderRegistry              | Unit Tests        | ✅ Complete |
+| DependencyGraph              | Unit Tests        | ✅ Complete |
+| ExecutionPlanner             | Unit Tests        | ✅ Complete |
+| ExecutionStrategy            | Unit Tests        | ✅ Complete |
+| AbstractDataBuilder          | Unit Tests        | ✅ Complete |
+| ExecutionStatisticsCollector | Unit Tests        | ✅ Complete |
+| DataFlowEngine               | Integration Tests | ✅ Complete |
+| Error Handling               | Edge Case Tests   | ✅ Complete |
+| Performance                  | Benchmark Tests   | ✅ Complete |
+| Overall Coverage             | All Components    | ✅ 100%     |
 
 ## 🚀 Development
 
@@ -288,12 +326,12 @@ Basic Performance:
 
 Scalability:
   10 builders: ~45ms
-  50 builders: ~89ms  
+  50 builders: ~89ms
   100 builders: ~156ms
 
 Parallel Efficiency:
   2 builders: 78% efficiency gain
-  5 builders: 65% efficiency gain  
+  5 builders: 65% efficiency gain
   10 builders: 52% efficiency gain
 ```
 
@@ -304,25 +342,28 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 ### Development Setup
 
 1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-org/databuilderframework-ts
-   cd databuilderframework-ts
-   ```
+
+    ```bash
+    git clone https://github.com/your-org/databuilderframework-ts
+    cd databuilderframework-ts
+    ```
 
 2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+
+    ```bash
+    npm install
+    ```
 
 3. **Run tests**
-   ```bash
-   npm test
-   ```
+
+    ```bash
+    npm test
+    ```
 
 4. **Start development**
-   ```bash
-   turbo dev
-   ```
+    ```bash
+    turbo dev
+    ```
 
 ### 📋 Development Guidelines
 
@@ -337,17 +378,27 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 ### Common Issues
 
 **Circular Dependency Error**
+
 ```typescript
 // ❌ This creates a cycle
-class A extends TransformDataBuilder<BData, AData> { inputType = 'b'; }
-class B extends TransformDataBuilder<AData, BData> { inputType = 'a'; }
+class A extends TransformDataBuilder<BData, AData> {
+	inputType = 'b';
+}
+class B extends TransformDataBuilder<AData, BData> {
+	inputType = 'a';
+}
 
 // ✅ Break the cycle with a source
-class Source extends SourceDataBuilder<AData> { /* ... */ }
-class B extends TransformDataBuilder<AData, BData> { inputType = 'a'; }
+class Source extends SourceDataBuilder<AData> {
+	/* ... */
+}
+class B extends TransformDataBuilder<AData, BData> {
+	inputType = 'a';
+}
 ```
 
 **Missing Builder Error**
+
 ```typescript
 // ❌ Requesting data without registering builder
 await engine.executeSimple(['missingData']);
@@ -358,15 +409,16 @@ await engine.executeSimple(['missingData']);
 ```
 
 **Type Safety Issues**
+
 ```typescript
 // ❌ Wrong input type
 class Processor extends TransformDataBuilder<string, Result> {
-  inputType = 'wrongType'; // Type mismatch
+	inputType = 'wrongType'; // Type mismatch
 }
 
 // ✅ Correct typing
 class Processor extends TransformDataBuilder<InputData, Result> {
-  inputType = 'inputData'; // Matches InputData type
+	inputType = 'inputData'; // Matches InputData type
 }
 ```
 

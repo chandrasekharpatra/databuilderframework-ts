@@ -3,6 +3,7 @@ import { AbstractDataBuilder, CombineDataBuilder, SourceDataBuilder, TransformDa
 import { DataFlowEngine, ExecutionMode } from '../src/core/DataFlowEngine';
 import { DataSetImpl } from '../src/core/DataSetImpl';
 import { CircularDependencyError, MissingBuilderError } from '../src/core/ExecutionPlanner';
+import { DuplicateBuilderError } from '../src/core/BuilderRegistry';
 import { BuilderExecutionError } from '../src/core/ExecutionStrategy';
 import { Data, DataSet, ExecutionContext } from '../src/types';
 
@@ -213,7 +214,7 @@ describe('DataFlowEngine', () => {
 			expect(engine.hasBuilder('profile')).toBe(true);
 		});
 
-		test('should throw error when registering duplicate builder without overwrite', () => {
+		test('should throw DuplicateBuilderError when registering duplicate builder without overwrite', () => {
 			const userBuilder1 = new UserSourceBuilder();
 			const userBuilder2 = new UserSourceBuilder();
 
@@ -221,7 +222,7 @@ describe('DataFlowEngine', () => {
 
 			expect(() => {
 				engine.registerBuilder(userBuilder2);
-			}).toThrow();
+			}).toThrow(DuplicateBuilderError);
 		});
 
 		test('should allow overwriting builder when explicitly allowed', () => {
@@ -700,6 +701,60 @@ describe('DataFlowEngine', () => {
 			expect(validation.isValid).toBe(true);
 			expect(validation.issues).toEqual([]);
 			expect(validation.warnings).toContain('Potentially unused builders: profile');
+		});
+	});
+
+	describe('External Input Declaration', () => {
+		let externalEngine: DataFlowEngine;
+
+		beforeEach(() => {
+			externalEngine = new DataFlowEngine();
+		});
+
+		test('validateRegistry warns about unsatisfied dependencies by default', () => {
+			externalEngine.registerBuilder(new UserToProfileTransformer()); // consumes 'user'
+
+			const validation = externalEngine.validateRegistry();
+
+			expect(validation.isValid).toBe(false);
+			expect(validation.issues).toContain('Unsatisfied dependencies: user');
+		});
+
+		test('declaring external input removes warning from validateRegistry', () => {
+			externalEngine.registerBuilder(new UserToProfileTransformer()); // consumes 'user'
+			externalEngine.declareExternalInput('user');
+
+			const validation = externalEngine.validateRegistry();
+
+			expect(validation.isValid).toBe(true);
+			expect(validation.issues).toEqual([]);
+		});
+
+		test('declareExternalInputs accepts multiple types', () => {
+			externalEngine.declareExternalInputs(['user', 'config']);
+
+			expect(externalEngine.getDeclaredExternalInputs()).toContain('user');
+			expect(externalEngine.getDeclaredExternalInputs()).toContain('config');
+			expect(externalEngine.getDeclaredExternalInputs()).toHaveLength(2);
+		});
+
+		test('undeclareExternalInput removes a declaration', () => {
+			externalEngine.declareExternalInput('user');
+			expect(externalEngine.getDeclaredExternalInputs()).toContain('user');
+
+			const removed = externalEngine.undeclareExternalInput('user');
+			expect(removed).toBe(true);
+			expect(externalEngine.getDeclaredExternalInputs()).not.toContain('user');
+
+			const removedAgain = externalEngine.undeclareExternalInput('user');
+			expect(removedAgain).toBe(false);
+		});
+
+		test('clearDeclaredExternalInputs removes all declarations', () => {
+			externalEngine.declareExternalInputs(['user', 'config']);
+			externalEngine.clearDeclaredExternalInputs();
+
+			expect(externalEngine.getDeclaredExternalInputs()).toHaveLength(0);
 		});
 	});
 

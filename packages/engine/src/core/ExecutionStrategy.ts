@@ -35,6 +35,57 @@ export interface ExecutionResult {
 }
 
 /**
+ * Lifecycle hooks for observing execution progress.
+ * All hooks are optional.
+ */
+export interface ExecutionHooks {
+	/**
+	 * Called when execution starts.
+	 * @param plan The execution plan being executed
+	 */
+	onExecutionStart?: (plan: ExecutionPlan) => void;
+
+	/**
+	 * Called when execution completes successfully.
+	 * @param stats The final execution statistics
+	 */
+	onExecutionComplete?: (stats: ExecutionStats) => void;
+
+	/**
+	 * Called before a builder starts building its data.
+	 * @param dataType The data type being built
+	 */
+	onBuilderStart?: (dataType: string) => void;
+
+	/**
+	 * Called after a builder completes successfully.
+	 * @param dataType The data type that was built
+	 * @param executionTime The time taken in milliseconds
+	 */
+	onBuilderComplete?: (dataType: string, executionTime: number) => void;
+
+	/**
+	 * Called when a builder is skipped because its output already exists.
+	 * @param dataType The data type that was skipped
+	 */
+	onBuilderSkipped?: (dataType: string) => void;
+
+	/**
+	 * Called when a builder fails.
+	 * @param dataType The data type that failed
+	 * @param error The builder execution error
+	 */
+	onBuilderError?: (dataType: string, error: BuilderExecutionError) => void;
+
+	/**
+	 * Called before each parallel level starts executing.
+	 * Only fired by the parallel execution strategy.
+	 * @param level Array of data types in the level
+	 */
+	onLevelStart?: (level: string[]) => void;
+}
+
+/**
  * Configuration options for execution strategies.
  */
 export interface ExecutionOptions {
@@ -55,6 +106,11 @@ export interface ExecutionOptions {
 	 * If false, any builder failure will stop execution.
 	 */
 	continueOnError?: boolean;
+
+	/**
+	 * Lifecycle hooks for observing execution progress.
+	 */
+	hooks?: ExecutionHooks;
 }
 
 /**
@@ -93,14 +149,31 @@ export abstract class ExecutionStrategy {
 			return dataSet.clone();
 		}
 
-		// For generic DataSet instances, we can't access internal data directly
-		// This is a limitation that could be addressed by extending the DataSet interface
 		const result = new DataSetImpl();
-
-		// TODO: Consider extending DataSet interface to include iteration capabilities
-		// For now, we'll create an empty DataSet and let the builders populate it
-
+		if (typeof dataSet.entries === 'function') {
+			for (const [, data] of dataSet.entries()) {
+				result.add(data);
+			}
+		}
 		return result;
+	}
+
+	/**
+	 * Invoke a lifecycle hook if it is defined.
+	 * @param options Execution options containing hooks
+	 * @param hookName Name of the hook to invoke
+	 * @param args Arguments to pass to the hook
+	 * @protected
+	 */
+	protected invokeHook<K extends keyof ExecutionHooks>(
+		options: ExecutionOptions,
+		hookName: K,
+		...args: Parameters<NonNullable<ExecutionHooks[K]>>
+	): void {
+		const hook = options.hooks?.[hookName];
+		if (hook) {
+			(hook as (...args: unknown[]) => void)(...args);
+		}
 	}
 
 	/**
@@ -119,6 +192,7 @@ export abstract class ExecutionStrategy {
 		// Check if data already exists
 		if (resultDataSet.contains(dataType)) {
 			this.statisticsCollector.recordSkippedBuilder();
+			this.invokeHook(options, 'onBuilderSkipped', dataType);
 			return { dataType, skipped: true, result: null, executionTime: 0 };
 		}
 
@@ -128,6 +202,7 @@ export abstract class ExecutionStrategy {
 		}
 
 		const builderStartTime = Date.now();
+		this.invokeHook(options, 'onBuilderStart', dataType);
 
 		try {
 			// Apply timeout if specified
@@ -142,16 +217,20 @@ export abstract class ExecutionStrategy {
 			const executionTime = builderEndTime - builderStartTime;
 
 			this.statisticsCollector.recordBuilderExecution(dataType, executionTime);
+			this.invokeHook(options, 'onBuilderComplete', dataType, executionTime);
 			return { dataType, skipped: false, result, executionTime };
 		} catch (error) {
 			const cause = error instanceof Error ? error : new Error(String(error));
 			const builderName = builder.constructor.name;
+			const builderError = new BuilderExecutionError(builderName, dataType, cause);
+
+			this.invokeHook(options, 'onBuilderError', dataType, builderError);
 
 			if (options.continueOnError) {
 				console.warn(`Builder ${builderName} failed for ${dataType}, continuing execution:`, cause.message);
 				return { dataType, skipped: false, result: null, executionTime: 0 };
 			} else {
-				throw new BuilderExecutionError(builderName, dataType, cause);
+				throw builderError;
 			}
 		}
 	}
@@ -187,6 +266,7 @@ export class SequentialExecutionStrategy extends ExecutionStrategy {
 	async execute(context: ExecutionContext, plan: ExecutionPlan, options: ExecutionOptions = {}): Promise<ExecutionResult> {
 		this.statisticsCollector.startExecution();
 		this.statisticsCollector.setSequentialExecution();
+		this.invokeHook(options, 'onExecutionStart', plan);
 
 		// Create result dataset starting with initial data
 		const resultDataSet = this.cloneDataSet(context.initialData);
@@ -201,6 +281,7 @@ export class SequentialExecutionStrategy extends ExecutionStrategy {
 		}
 
 		const stats = this.statisticsCollector.stopExecution();
+		this.invokeHook(options, 'onExecutionComplete', stats);
 
 		return {
 			dataSet: resultDataSet,
@@ -221,16 +302,19 @@ export class ParallelExecutionStrategy extends ExecutionStrategy {
 	async execute(context: ExecutionContext, plan: ExecutionPlan, options: ExecutionOptions = {}): Promise<ExecutionResult> {
 		this.statisticsCollector.startExecution();
 		this.statisticsCollector.setParallelExecutionInfo(plan.parallelExecutionLevels.length, plan.maxConcurrency);
+		this.invokeHook(options, 'onExecutionStart', plan);
 
 		// Create result dataset starting with initial data
 		const resultDataSet = this.cloneDataSet(context.initialData);
 
 		// Execute builders level by level (parallel within each level)
 		for (const level of plan.parallelExecutionLevels) {
+			this.invokeHook(options, 'onLevelStart', level);
 			await this.executeLevel(level, resultDataSet, options);
 		}
 
 		const stats = this.statisticsCollector.stopExecution();
+		this.invokeHook(options, 'onExecutionComplete', stats);
 
 		return {
 			dataSet: resultDataSet,

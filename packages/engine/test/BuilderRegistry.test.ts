@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-import { BuilderRegistry } from '../src/core/BuilderRegistry';
+import { BuilderRegistry, DuplicateBuilderError } from '../src/core/BuilderRegistry';
 import { Data, DataBuilder, DataSet } from '../src/types/index';
 
 // Test data interfaces
@@ -158,12 +158,15 @@ describe('BuilderRegistry', () => {
 			expect(registry.get('userStats')).toBe(statsBuilder);
 		});
 
-		test('should throw error when registering duplicate builder without overwrite', () => {
+		test('should throw DuplicateBuilderError when registering duplicate builder without overwrite', () => {
 			const userBuilder1 = new UserBuilder();
 			const userBuilder2 = new UserBuilder();
 
 			registry.register(userBuilder1);
 
+			expect(() => {
+				registry.register(userBuilder2);
+			}).toThrow(DuplicateBuilderError);
 			expect(() => {
 				registry.register(userBuilder2);
 			}).toThrow("Builder for data type 'user' is already registered");

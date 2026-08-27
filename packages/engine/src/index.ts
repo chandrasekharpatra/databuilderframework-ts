@@ -4,6 +4,7 @@ export * from './types';
 // Core implementations
 export { DataFlowEngine, DataFlowExecutionError, ExecutionMode, type DataFlowExecutionOptions } from './core/DataFlowEngine';
 export { DataSetImpl } from './core/DataSetImpl';
+export { CHECKPOINT_VERSION, createCheckpoint, restoreFromCheckpoint, type DataSetCheckpoint } from './core/Checkpoint';
 
 // Re-export error types for backward compatibility
 export { CircularDependencyError, MissingBuilderError } from './core/ExecutionPlanner';
@@ -19,7 +20,8 @@ export {
 	ExecutionStrategy,
 	ExecutionStrategyFactory,
 	ParallelExecutionStrategy,
-	SequentialExecutionStrategy
+	SequentialExecutionStrategy,
+	type ExecutionHooks,
 } from './core/ExecutionStrategy';
 
 // Base classes for builders
@@ -28,7 +30,7 @@ export {
 	CombineDataBuilder,
 	RequiredDataNotFoundError,
 	SourceDataBuilder,
-	TransformDataBuilder
+	TransformDataBuilder,
 } from './builders/AbstractDataBuilder';
 
 // Import for use in convenience functions
